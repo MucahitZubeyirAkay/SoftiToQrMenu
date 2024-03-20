@@ -90,26 +90,32 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Companies
         [HttpPost]
-        public ActionResult<Company> PostCompany(CompanyDto companyDto, ApplicationUserDto applicationUserDto, string password)// 3 parametre alamıyoruz
+        public async Task<ActionResult<Company>> PostCompany([FromBody] CompanyUserDto companyUserDto, string password)
         {
-            if(companyDto == null)
+            if (companyUserDto == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
 
-            Claim claim;
-
-            var company = _mapper.Map<Company>(companyDto);
-
+            // Şirketi oluştur
+            var company = _mapper.Map<Company>(companyUserDto.CompanyDto);
             _context.Companies!.Add(company);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            var applicationUser = _mapper.Map<ApplicationUser>(applicationUserDto);
+            // Kullanıcıyı oluştur ve şirketin ID'sini ata
+            var applicationUser = _mapper.Map<ApplicationUser>(companyUserDto.ApplicationUserDto);
+            applicationUser.CompanyId = company.Id; // Şirketin ID'sini kullanıcıya atama
+            var result = await _userManager.CreateAsync(applicationUser, password);
 
-            _userManager.CreateAsync(applicationUser, password).Wait();
-            claim = new Claim("CompanyId", company.Id.ToString());
-            _userManager.AddClaimAsync(applicationUser, claim).Wait();
-            _userManager.AddToRoleAsync(applicationUser, "CompanyAdministrator").Wait();
+            if (!result.Succeeded)
+            {
+                // Kullanıcı oluşturma başarısız olursa, uygun bir hata döndür
+                return BadRequest("Kullanıcı oluşturma başarısız: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            // Kullanıcıya rolleri ve yetkileri ata
+            await _userManager.AddToRoleAsync(applicationUser, "CompanyAdministrator");
+            await _userManager.AddClaimAsync(applicationUser, new Claim("CompanyId", company.Id.ToString()));
 
             return Ok();
         }
