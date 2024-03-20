@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QrMenuApi.Data.Context;
@@ -18,11 +20,13 @@ namespace QrMenuApi.Controllers
     {
         private readonly IMapper _mapper;
         private readonly QrMenuApiContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CompaniesController(IMapper mapper, QrMenuApiContext context)
+        public CompaniesController(IMapper mapper, QrMenuApiContext context, UserManager<ApplicationUser> userManager)
         {
             _mapper = mapper;
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/Companies
@@ -86,16 +90,27 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Companies
         [HttpPost]
-        public ActionResult<Company> PostCompany(CompanyDto companyDto)
+        public ActionResult<Company> PostCompany(CompanyDto companyDto, ApplicationUserDto applicationUserDto, string password)// 3 parametre alamıyoruz
         {
             if(companyDto == null)
             {
                 return NotFound(); 
             }
 
+            Claim claim;
+
             var company = _mapper.Map<Company>(companyDto);
+
             _context.Companies!.Add(company);
             _context.SaveChanges();
+
+            var applicationUser = _mapper.Map<ApplicationUser>(applicationUserDto);
+
+            _userManager.CreateAsync(applicationUser, password).Wait();
+            claim = new Claim("CompanyId", company.Id.ToString());
+            _userManager.AddClaimAsync(applicationUser, claim).Wait();
+            _userManager.AddToRoleAsync(applicationUser, "CompanyAdministrator").Wait();
+
             return Ok();
         }
 

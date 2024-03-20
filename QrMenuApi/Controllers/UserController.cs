@@ -99,7 +99,6 @@ namespace QrMenuApi.Controllers
         {
             Microsoft.AspNetCore.Identity.SignInResult signInResult;
             ApplicationUser applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-            Claim claim;
 
             if (applicationUser == null)
             {

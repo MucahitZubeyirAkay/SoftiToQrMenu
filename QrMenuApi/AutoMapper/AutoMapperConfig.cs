@@ -12,6 +12,7 @@ namespace QrMenuApi.AutoMapper
             CreateMap<Restaurant, RestaurantDto>().ReverseMap().ForMember(dest=> dest.RegisterDate, opt => opt.MapFrom(src => DateTime.Now));
             CreateMap<Category, CategoryDto>().ReverseMap().ForMember(dest => dest.RegisterDate, opt => opt.MapFrom(src => DateTime.Now));
             CreateMap<Food, FoodDto>().ReverseMap();
+            CreateMap<ApplicationUser, ApplicationUserDto>().ReverseMap().ForMember(dest => dest.RegisterDate, opt => opt.MapFrom(src => DateTime.Now));
 
         }
     }
