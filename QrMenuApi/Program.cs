@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QrMenuApi.AutoMapper;
+using QrMenuApi.Data;
 using QrMenuApi.Data.Context;
 using QrMenuApi.Data.Models;
 using System.Reflection;
@@ -41,6 +42,11 @@ namespace QrMenuApi
 
 
             app.MapControllers();
+
+            QrMenuApiContext? context = app.Services.CreateScope().ServiceProvider.GetService<QrMenuApiContext>();
+            RoleManager<IdentityRole>? roleManager = app.Services.CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
+            UserManager<ApplicationUser>? userManager = app.Services.CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            DbInitializer dBInitializer = new DbInitializer(context, roleManager, userManager);
 
             app.Run();
         }
