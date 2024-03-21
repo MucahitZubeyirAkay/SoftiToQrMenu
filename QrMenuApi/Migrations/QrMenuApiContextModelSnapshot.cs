@@ -433,13 +433,10 @@ namespace QrMenuApi.Migrations
                     b.Property<int>("RestaurantId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("RestaurantId", "UserId");
+                    b.HasKey("RestaurantId", "ApplicationUserId");
 
                     b.HasIndex("ApplicationUserId");
 
@@ -610,7 +607,8 @@ namespace QrMenuApi.Migrations
                     b.HasOne("QrMenuApi.Data.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("QrMenuApi.Data.Models.Restaurant", "Restaurant")
                         .WithMany()

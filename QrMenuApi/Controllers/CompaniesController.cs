@@ -90,7 +90,7 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Companies
         [HttpPost]
-        public async Task<ActionResult<Company>> PostCompany([FromBody] CompanyUserDto companyUserDto, string password)
+        public async Task<ActionResult<Company>> PostCompany([FromBody] CompanyUserDto companyUserDto)//, string password)
         {
             if (companyUserDto == null)
             {
@@ -104,16 +104,17 @@ namespace QrMenuApi.Controllers
 
             // Kullanıcıyı oluştur ve şirketin ID'sini ata
             var applicationUser = _mapper.Map<ApplicationUser>(companyUserDto.ApplicationUserDto);
-            applicationUser.CompanyId = company.Id; // Şirketin ID'sini kullanıcıya atama
-            var result = await _userManager.CreateAsync(applicationUser, password);
+            applicationUser.CompanyId = company.Id; // Şirketin ID'sini kullanıcıya sen atama. Kendi otomatik oluşturulan Companysini alsın.
+            var result = await _userManager.CreateAsync(applicationUser, companyUserDto.Password);
 
             if (!result.Succeeded)
             {
-                // Kullanıcı oluşturma başarısız olursa, uygun bir hata döndür
+                // Kullanıcı oluşturma başarısız olursa uygun bir hata döndür
                 return BadRequest("Kullanıcı oluşturma başarısız: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
             // Kullanıcıya rolleri ve yetkileri ata
+            //var role = _context.Roles.FirstOrDefault(r => r.Id == "775f609c - 6bd3 - 47cf - 9d0b - 846c3d18d6df");
             await _userManager.AddToRoleAsync(applicationUser, "CompanyAdministrator");
             await _userManager.AddClaimAsync(applicationUser, new Claim("CompanyId", company.Id.ToString()));
 

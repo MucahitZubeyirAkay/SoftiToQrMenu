@@ -12,7 +12,7 @@ using QrMenuApi.Data.Context;
 namespace QrMenuApi.Migrations
 {
     [DbContext(typeof(QrMenuApiContext))]
-    [Migration("20240319072254_InitialCreate")]
+    [Migration("20240321104910_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -246,7 +246,8 @@ namespace QrMenuApi.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.HasIndex("UserName");
+                    b.HasIndex("UserName")
+                        .IsUnique();
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -434,13 +435,10 @@ namespace QrMenuApi.Migrations
                     b.Property<int>("RestaurantId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("RestaurantId", "UserId");
+                    b.HasKey("RestaurantId", "ApplicationUserId");
 
                     b.HasIndex("ApplicationUserId");
 
@@ -611,7 +609,8 @@ namespace QrMenuApi.Migrations
                     b.HasOne("QrMenuApi.Data.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("QrMenuApi.Data.Models.Restaurant", "Restaurant")
                         .WithMany()

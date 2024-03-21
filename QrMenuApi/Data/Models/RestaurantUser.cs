@@ -5,7 +5,7 @@ namespace QrMenuApi.Data.Models
     {
         public int RestaurantId { get; set; }
 
-        public int UserId { get; set; }
+        public string? ApplicationUserId { get; set; }
 
 
 

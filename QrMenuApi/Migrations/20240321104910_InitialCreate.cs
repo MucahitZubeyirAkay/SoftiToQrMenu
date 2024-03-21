@@ -274,12 +274,11 @@ namespace QrMenuApi.Migrations
                 columns: table => new
                 {
                     RestaurantId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RestaurantUser", x => new { x.RestaurantId, x.UserId });
+                    table.PrimaryKey("PK_RestaurantUser", x => new { x.RestaurantId, x.ApplicationUserId });
                     table.ForeignKey(
                         name: "FK_RestaurantUser_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
@@ -364,7 +363,8 @@ namespace QrMenuApi.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_UserName",
                 table: "AspNetUsers",
-                column: "UserName");
+                column: "UserName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",

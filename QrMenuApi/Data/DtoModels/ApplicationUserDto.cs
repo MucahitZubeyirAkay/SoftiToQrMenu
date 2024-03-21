@@ -11,7 +11,7 @@ namespace QrMenuApi.Data.DtoModels
         public string? PhoneNumber { get; set; }
         public string Email { get; set; } = "";
         public byte StateId { get; set; }
-        public int CompanyId { get; set; }
+        //public int CompanyId { get; set; }
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QrMenuApi.Data.Models;
 
@@ -118,12 +118,16 @@ namespace QrMenuApi.Data.Context
 
 
             //RestaurantUser-Restaurant, RestaurantUser-ApplcationUser
-            modelBuilder.Entity<RestaurantUser>().HasKey(ru => new { ru.RestaurantId, ru.UserId});
+            modelBuilder.Entity<RestaurantUser>().HasKey(ru => new { ru.RestaurantId, ru.ApplicationUserId });
             modelBuilder.Entity<RestaurantUser>().HasOne(ru => ru.Restaurant).WithMany().OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<RestaurantUser>().HasOne(ru => ru.ApplicationUser).WithMany().OnDelete(DeleteBehavior.NoAction);
 
             #endregion
         }
+
+
+
+        public DbSet<QrMenuApi.Data.Models.RestaurantUser>? RestaurantUser { get; set; }
 
     }
 }

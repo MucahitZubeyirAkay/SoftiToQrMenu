@@ -4,5 +4,7 @@
     {
         public CompanyDto? CompanyDto { get; set; }
         public ApplicationUserDto? ApplicationUserDto { get; set; }
+
+        public string? Password { get; set; }
     }
 }
