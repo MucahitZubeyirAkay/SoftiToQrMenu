@@ -54,7 +54,7 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Roles
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Administrator")]
         public void PostApplicationRole(string name)
         {
 

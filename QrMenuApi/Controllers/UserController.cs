@@ -147,7 +147,7 @@ namespace QrMenuApi.Controllers
             Microsoft.AspNetCore.Identity.SignInResult signInResult;
             ApplicationUser applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
 
-            if (applicationUser == null)
+            if (applicationUser == null && applicationUser!.StateId!=1)
             {
                 return false;
             }
