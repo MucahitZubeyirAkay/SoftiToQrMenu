@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using QrMenuApi.Data.Context;
+using QrMenuApi.Data.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -22,68 +24,31 @@ namespace QrMenuApi.Controllers
             _roleManager = roleManager;
         }
 
-        //// GET: api/Roles
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<ApplicationRole>>> GetApplicationRole()
-        //{
-        //  if (_context.ApplicationRole == null)
-        //  {
-        //      return NotFound();
-        //  }
-        //    return await _context.ApplicationRole.ToListAsync();
-        //}
+        // GET: api/Roles
+        [HttpGet]
+        public ActionResult GetRoles()
+        { 
+            var roles = _roleManager.Roles.ToList();
+
+            return Ok(roles);
+        }
 
         //// GET: api/Roles/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<ApplicationRole>> GetApplicationRole(string id)
-        //{
-        //  if (_context.ApplicationRole == null)
-        //  {
-        //      return NotFound();
-        //  }
-        //    var applicationRole = await _context.ApplicationRole.FindAsync(id);
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetRoleById(string id)
+        {
+            var role = await _roleManager.FindByIdAsync(id);
 
-        //    if (applicationRole == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (role == null)
+            {
+                return NotFound(); 
+            }
 
-        //    return applicationRole;
-        //}
+            return Ok(role); 
+        }
 
-        //// PUT: api/Roles/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutApplicationRole(string id, ApplicationRole applicationRole)
-        //{
-        //    if (id != applicationRole.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(applicationRole).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!ApplicationRoleExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
 
         // POST: api/Roles
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public void PostApplicationRole(string name)
         {
@@ -91,31 +56,6 @@ namespace QrMenuApi.Controllers
             IdentityRole applicationRole = new IdentityRole(name);
             _roleManager.CreateAsync(applicationRole).Wait();
         }
-
-        //// DELETE: api/Roles/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteApplicationRole(string id)
-        //{
-        //    if (_context.ApplicationRole == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var applicationRole = await _context.ApplicationRole.FindAsync(id);
-        //    if (applicationRole == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.ApplicationRole.Remove(applicationRole);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //private bool ApplicationRoleExists(string id)
-        //{
-        //    return (_context.ApplicationRole?.Any(e => e.Id == id)).GetValueOrDefault();
-        //}
     }
 }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -13,7 +14,7 @@ using QrMenuApi.Data.Models;
 
 namespace QrMenuApi.Controllers
 {
-    [Authorize(Roles ="RestaurantAdmin, CompanyAdmin")]
+   
     [Route("api/[controller]")]
     [ApiController]
     public class FoodsController : ControllerBase
@@ -60,8 +61,18 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
+        [Authorize(Roles ="RestaurantAdministrator")]
         public ActionResult PutFood(int id, FoodDto foodDto)
         {
+            var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
+
+            var categoryRestaurantId = _context.Foods!.Include(c => c.Category).FirstOrDefault(f => f.Id == id)?.Category?.RestraurantId.ToString();
+
+            if (restaurantId != categoryRestaurantId)
+            {
+                return Unauthorized();
+            }
+
             var existingFood = _context.Foods!.Find(id);
             if (existingFood == null)
             {
@@ -87,9 +98,19 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Foods
         [HttpPost]
+        [Authorize(Roles ="RestaurantAdministrator")]
         public ActionResult<Food> PostFood(FoodDto foodDto)
         {
-          if(foodDto == null)
+            var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
+
+            var categoryRestaurantId = _context.Foods!.Include(c => c.Category).FirstOrDefault(f => f.Id == foodDto.CategoryId)?.Category?.RestraurantId.ToString();
+
+            if (restaurantId != categoryRestaurantId)
+            {
+                return Unauthorized();
+            }
+
+            if (foodDto == null)
             {
                 return NotFound();
             }

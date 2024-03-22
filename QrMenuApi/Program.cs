@@ -46,6 +46,7 @@ namespace QrMenuApi
             QrMenuApiContext? context = app.Services.CreateScope().ServiceProvider.GetService<QrMenuApiContext>();
             RoleManager<IdentityRole>? roleManager = app.Services.CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
             UserManager<ApplicationUser>? userManager = app.Services.CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            SignInManager<ApplicationUser>? signInManager = app.Services.CreateScope().ServiceProvider.GetService<SignInManager<ApplicationUser>>();
             DbInitializer dBInitializer = new DbInitializer(context, roleManager, userManager);
 
             app.Run();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -61,8 +62,18 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult PutCompany(int id, CompanyDto companyDto)
         {
+            if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
+            {
+                if (User.HasClaim("CompanyId", id.ToString()) == false)
+                {
+                   return Unauthorized();
+                }
+            }
+
+
             var existingCompany = _context.Companies!.Find(id);
 
             if (existingCompany == null)
@@ -89,7 +100,9 @@ namespace QrMenuApi.Controllers
         }
 
         // POST: api/Companies
+        
         [HttpPost]
+        [Authorize(Roles ="Administrator")]
         public async Task<ActionResult<Company>> PostCompany([FromBody] CompanyUserDto companyUserDto)//, string password)
         {
             if (companyUserDto == null)
@@ -123,6 +136,7 @@ namespace QrMenuApi.Controllers
 
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
+        [Authorize(Roles ="Administrator")]
         public ActionResult CompanyStateChange(int id, byte stateId)
         {
             if(stateId !=0 && stateId != 1 && stateId != 2)

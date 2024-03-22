@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QrMenuApi.Data.Context;
@@ -20,7 +21,9 @@ namespace QrMenuApi.Controllers
             _roleManager = roleManager;
         }
 
+        
         [HttpGet]
+        [Authorize(Roles ="Administrator,CompanyAdministrator")]
         public ActionResult<List<ApplicationUser>> GetAllAplciationUsers()
         {
             return _signInManager.UserManager.Users.ToList();
@@ -43,6 +46,11 @@ namespace QrMenuApi.Controllers
             var result = _signInManager.UserManager.CreateAsync(applicationUser, passWord).Result;
             if (result.Succeeded)
             {
+                Claim claim;
+                
+                claim = new Claim("CompanyId", applicationUser.CompanyId.ToString());
+                _signInManager.UserManager.AddClaimAsync(applicationUser, claim).Wait();
+                
                 return applicationUser.Id;
             }
             else
@@ -80,7 +88,6 @@ namespace QrMenuApi.Controllers
         public ActionResult DeleteApplicationUser(string id)
         {
             ApplicationUser applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
-
             if (applicationUser != null)
             {
                 applicationUser.StateId = 0;
@@ -105,6 +112,8 @@ namespace QrMenuApi.Controllers
                 return false;
             }
             signInResult = _signInManager.PasswordSignInAsync(applicationUser, passWord, false, false).Result;
+
+            
             return signInResult.Succeeded;
         }
 

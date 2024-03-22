@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,6 @@ namespace QrMenuApi.Controllers
         }
 
         // GET: api/Restaurants
-        [HttpGet]
         [HttpGet]
         public ActionResult<List<Restaurant>> GetRestaurants()
         {
@@ -61,8 +61,25 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Restaurants/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult PutRestaurant(int id, RestaurantDto restaurantDto)
         {
+            if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
+            {
+                if (User.HasClaim("CompanyId", restaurantDto.CompanyId.ToString()) == false)
+                {
+                    return Unauthorized();
+                }
+
+            }
+            else
+            {
+                if (User.HasClaim("RestaurantId", id.ToString()) == false)
+                {
+                    return Unauthorized();
+                }
+            }
+
             var existingRestaurant = _context.Restaurants!.Find(id);
 
             if (existingRestaurant==null)
@@ -89,12 +106,19 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Restaurants
         [HttpPost]
+        [Authorize(Roles = "CompanyAdministrator")]
         public ActionResult<Restaurant> PostRestaurant(RestaurantDto restaurantDto)
         {
-          if (restaurantDto == null)
-          {
+            if (User.HasClaim("CompanyId", restaurantDto.CompanyId.ToString()) == false)
+            {
+               return Unauthorized();
+            }
+
+
+            if (restaurantDto == null)
+            {
               return NotFound();
-          }
+            }
 
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
             _context.Restaurants!.Add(restaurant);
@@ -104,8 +128,18 @@ namespace QrMenuApi.Controllers
 
         // DELETE: api/Restaurants/5
         [HttpDelete("{id}")]
+        [Authorize(Roles ="CompanyAdministrator")]
         public ActionResult RestaurantStateChange(int id, byte stateId)
         {
+
+            var companyId = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+            var restaurantCompanyId = _context.Restaurants!.FirstOrDefault(r => r.Id == id)?.ToString();
+
+            if (companyId != restaurantCompanyId)
+            {
+                return Unauthorized();
+            }
+
             if (stateId != 0 && stateId != 1 && stateId != 2)
             {
                 return BadRequest("Yanlış stateId girdiniz!");
