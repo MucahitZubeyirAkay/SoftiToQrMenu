@@ -106,7 +106,7 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Restaurants
         [HttpPost]
-        [Authorize(Roles = "CompanyAdministrator")]
+        [Authorize(Roles = "CompanyAdministrator,Administrator")]
         public ActionResult<Restaurant> PostRestaurant(RestaurantDto restaurantDto)
         {
             if (User.HasClaim("CompanyId", restaurantDto.CompanyId.ToString()) == false)

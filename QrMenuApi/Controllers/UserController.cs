@@ -23,26 +23,47 @@ namespace QrMenuApi.Controllers
 
         
         [HttpGet]
-        [Authorize(Roles ="Administrator,CompanyAdministrator")]
-        public ActionResult<List<ApplicationUser>> GetAllAplciationUsers()
+        [Authorize(Roles ="CompanyAdministrator")]
+        public ActionResult<List<ApplicationUser>> GetCompanyAllAplciationUsers()
         {
-            return _signInManager.UserManager.Users.ToList();
+            int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
+
+            return _signInManager.UserManager.Users.Where(u=>u.CompanyId==companyId).ToList();
+
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "CompanyAdministrator")]
         public ActionResult<ApplicationUser> GetAplicationUser(string id)
         {
+            
             ApplicationUser applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
             if (applicationUser == null)
             {
                 return NotFound();
             }
+            if (User.HasClaim("CompanyId", applicationUser.Id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
+
             return Ok(applicationUser);
         }
 
         [HttpPost]
-        public string PostApplicationUser(ApplicationUser applicationUser, string passWord)
+        [Authorize(Roles ="Administrator, CompanyAdministrator")]
+        
+        public ActionResult<string> PostApplicationUser(ApplicationUser applicationUser, string passWord)
         {
+            
+            if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
+            {
+                if (User.HasClaim("CompanyId", applicationUser.CompanyId.ToString()) == false)
+                {
+                    return Unauthorized();
+                }
+            }
+
             var result = _signInManager.UserManager.CreateAsync(applicationUser, passWord).Result;
             if (result.Succeeded)
             {
@@ -61,11 +82,17 @@ namespace QrMenuApi.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize(Roles ="CompanyAdministrator")]
         public ActionResult PutApplicationUser(ApplicationUser applicationUser)
         {
             try
             {
                 ApplicationUser changeApplicationUser = _signInManager.UserManager.FindByIdAsync(applicationUser.Id).Result;
+
+                if (User.HasClaim("CompanyId", applicationUser.CompanyId.ToString()) == false)
+                {
+                    return Unauthorized();
+                }
 
                 changeApplicationUser.UserName = applicationUser.UserName;
                 changeApplicationUser.Name = applicationUser.Name;
@@ -85,9 +112,22 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize("CompanyAdministrator")]
         public ActionResult DeleteApplicationUser(string id)
         {
             ApplicationUser applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
+
+            if (User.HasClaim("CompanyId", applicationUser.CompanyId.ToString()) == false)
+            {
+                return Unauthorized();
+            }
+
+
+            /*if(applicationUser.Name=="Administrator")
+            {
+                return BadRequest("Administrator rolü silinemez!");
+            }*/
+
             if (applicationUser != null)
             {
                 applicationUser.StateId = 0;
@@ -117,6 +157,13 @@ namespace QrMenuApi.Controllers
             return signInResult.Succeeded;
         }
 
+        [HttpGet("LogOut")]
+        public void LogOut()
+        {
+            _signInManager.SignOutAsync();
+        }
+
+
         [HttpPost("ReSetPassWord")]
         public void ReSetPassWord(string userName, string passWord)
         {
@@ -129,6 +176,7 @@ namespace QrMenuApi.Controllers
             _signInManager.UserManager.RemovePasswordAsync(applicationUser).Wait();
             _signInManager.UserManager.AddPasswordAsync(applicationUser, passWord);
         }
+
 
         [HttpPost("PassWordReSet")]
         public string? PassWordReSet(string userName)

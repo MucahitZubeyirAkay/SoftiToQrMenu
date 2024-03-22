@@ -18,9 +18,13 @@ namespace QrMenuApi.Controllers
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RolesController(RoleManager<IdentityRole> roleManager)
+
+
+        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
             _roleManager = roleManager;
         }
 
@@ -50,11 +54,45 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Roles
         [HttpPost]
+        [Authorize]
         public void PostApplicationRole(string name)
         {
 
             IdentityRole applicationRole = new IdentityRole(name);
             _roleManager.CreateAsync(applicationRole).Wait();
+        }
+
+
+        [HttpDelete]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> DeleteRol(string id)
+        {
+           
+            var applicationRole = await _roleManager.FindByIdAsync(id);
+            if (applicationRole == null)
+            {
+                return NotFound("Rol bulunamadı.");
+            }
+
+            if(applicationRole.Name=="Administrator")
+            {
+                return BadRequest("Administrator rolü silinemez.");
+            }
+
+            if(User.IsInRole(applicationRole.Name))
+            {
+                return BadRequest("Kendi rolünü silemezseiniz");
+            }
+
+            var result = await _roleManager.DeleteAsync(applicationRole);
+            if (result.Succeeded)
+            {
+                return Ok($"{id} Id'li rol silindi!");
+            }
+            else
+            {
+                return BadRequest("Rol silme işlemi başarısız.");
+            }
         }
     }
 }
