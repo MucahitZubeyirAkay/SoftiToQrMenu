@@ -145,6 +145,7 @@ namespace QrMenuApi.Controllers
 
             // DELETE: api/Categories/5
             [HttpDelete("{id}")]
+            [Authorize(Roles ="CompanyAdministrator, RestaurantAdministrator")]
             public ActionResult CategoryStateChange(int id, byte stateId)
             {
 
@@ -199,9 +200,11 @@ namespace QrMenuApi.Controllers
                 }
             }
 
+        
+
             private bool CategoryExists(int id)
             {
                 return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
             }
-        }
+    }
 }
