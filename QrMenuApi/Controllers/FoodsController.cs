@@ -14,7 +14,7 @@ using QrMenuApi.Data.Models;
 
 namespace QrMenuApi.Controllers
 {
-
+   
     [Route("api/[controller]")]
     [ApiController]
     public class FoodsController : ControllerBase
@@ -30,12 +30,12 @@ namespace QrMenuApi.Controllers
 
         // GET: api/Foods
         [HttpGet]
-        public ActionResult<List<Food>> GetFoods()
+        public ActionResult <List<Food>> GetFoods()
         {
-            if (_context.Foods == null)
-            {
-                return NotFound();
-            }
+          if (_context.Foods == null)
+          {
+              return NotFound();
+          }
             List<Food> food = _context.Foods!.ToList();
 
             return food;
@@ -45,10 +45,10 @@ namespace QrMenuApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<Food> GetFood(int id)
         {
-            if (_context.Foods == null)
-            {
-                return NotFound();
-            }
+          if (_context.Foods == null)
+          {
+              return NotFound();
+          }
             Food? food = _context.Foods.Find(id);
 
             if (food == null)
@@ -61,7 +61,7 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Roles ="RestaurantAdministrator")]
         public ActionResult PutFood(int id, FoodDto foodDto)
         {
             var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
@@ -96,19 +96,57 @@ namespace QrMenuApi.Controllers
             }
         }
 
+        [HttpPost("UploadImage")]
+        public ActionResult<string> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                // Resmin uzantısını al
+                string fileExtension = Path.GetExtension(file.FileName);
+                // Benzersiz bir dosya adı oluşturun
+                string uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                // Resmin kaydedileceği yol
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "Image", uniqueFileName);
+
+                // Eğer Image klasörü yoksa oluşturun
+                if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Image")))
+                {
+                    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Image"));
+                }
+
+                // Resmi kaydedin
+                using (FileStream fileStream = new(imagePath, FileMode.Create))
+                {
+                    file.CopyTo(fileStream);
+                }
+
+                // Resmin yolunu döndürün
+                return Ok(imagePath);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex}");
+            }
+        }
+
         // POST: api/Foods
         [HttpPost]
-        [Authorize(Roles = "RestaurantAdministrator")]
+        //[Authorize(Roles ="RestaurantAdministrator")]
         public ActionResult<Food> PostFood(FoodDto foodDto)
         {
-            var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
+            //var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
 
-            var categoryRestaurantId = _context.Foods!.Include(c => c.Category).FirstOrDefault(f => f.Id == foodDto.CategoryId)?.Category?.RestraurantId.ToString();
+            //var categoryRestaurantId = _context.Foods!.Include(c => c.Category).FirstOrDefault(f => f.Id == foodDto.CategoryId)?.Category?.RestraurantId.ToString();
 
-            if (restaurantId != categoryRestaurantId)
-            {
-                return Unauthorized();
-            }
+            //if (restaurantId != categoryRestaurantId)
+            //{
+             //   return Unauthorized();
+            //}
 
             if (foodDto == null)
             {
@@ -116,6 +154,10 @@ namespace QrMenuApi.Controllers
             }
 
             var food = _mapper.Map<Food>(foodDto);
+
+            // Resim yolunu food nesnesine ekleyin
+            food.ImagePath = foodDto.ImagePath;
+
             _context.Foods!.Add(food);
             _context.SaveChanges();
             return Ok();
@@ -129,9 +171,9 @@ namespace QrMenuApi.Controllers
             {
                 return BadRequest("Yanlış stateId girdiniz!");
             }
-            var food = _context.Foods!.FirstOrDefault(f => f.Id == id);
+            var food =  _context.Foods!.FirstOrDefault(f=> f.Id == id);
 
-            if (food == null || food.StateId == 0)
+            if (food == null || food.StateId==0)
             {
                 return NotFound("Silmek istediğiniz yiyecek bulunamadı. Ya daha önceden silinmiş yada hiç var olmamış.");
             }

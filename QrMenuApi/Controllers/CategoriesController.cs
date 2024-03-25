@@ -115,11 +115,9 @@ namespace QrMenuApi.Controllers
         {
             if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
             {
-                var companyId = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+                var companyId = User.HasClaim("RestaurantId", categoryDto.RestraurantId.ToString());
 
-                var restaurantCompanyId = _context.Categories!.Include(c => c.Restaurant).FirstOrDefault(c => c.Id == categoryDto.RestraurantId)?.Restaurant?.CompanyId.ToString();
-
-                if (companyId != restaurantCompanyId)
+                if (companyId)
                 {
                     return Unauthorized();
                 }
