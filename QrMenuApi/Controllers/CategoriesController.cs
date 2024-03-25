@@ -62,7 +62,7 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Categories/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "CompanyAdministrator, RestaurantAdministrator")]
+        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult PutCategory(int id, CategoryDto categoryDto)
         {
 
@@ -93,26 +93,26 @@ namespace QrMenuApi.Controllers
             }
 
             var category = _mapper.Map(categoryDto, existingCategory);
-                _context.Entry(category).State = EntityState.Modified;
+            _context.Entry(category).State = EntityState.Modified;
 
-                try
-                {
-                    _context.SaveChangesAsync();
-                    return Ok("Güncelleme başarılı");
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    return NoContent();
-                }
-        }
-    
-       
-
-            // POST: api/Categories
-            [HttpPost]
-            [Authorize(Roles="RestaurantAdministrator,CompanyAdministrator")]
-            public ActionResult<Category> PostCategory(CategoryDto categoryDto)
+            try
             {
+                _context.SaveChangesAsync();
+                return Ok("Güncelleme başarılı");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return NoContent();
+            }
+        }
+
+
+
+        // POST: api/Categories
+        [HttpPost]
+        [Authorize(Roles = "RestaurantAdministrator,CompanyAdministrator")]
+        public ActionResult<Category> PostCategory(CategoryDto categoryDto)
+        {
             if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
             {
                 var companyId = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
@@ -133,21 +133,21 @@ namespace QrMenuApi.Controllers
             }
 
             if (_context.Categories == null)
-                {
-                    return NotFound();
-                }
-                var category = _mapper.Map<Category>(categoryDto);
-                _context.Categories.Add(category);
-                _context.SaveChangesAsync();
-
-                return Ok();
-            }
-
-            // DELETE: api/Categories/5
-            [HttpDelete("{id}")]
-            [Authorize(Roles ="CompanyAdministrator, RestaurantAdministrator")]
-            public ActionResult CategoryStateChange(int id, byte stateId)
             {
+                return NotFound();
+            }
+            var category = _mapper.Map<Category>(categoryDto);
+            _context.Categories.Add(category);
+            _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // DELETE: api/Categories/5
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
+        public ActionResult CategoryStateChange(int id, byte stateId)
+        {
 
             if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
             {
@@ -170,41 +170,41 @@ namespace QrMenuApi.Controllers
 
 
             if (stateId != 0 && stateId != 1 && stateId != 2)
-                {
-                    return BadRequest("Yanlış stateId girdiniz!");
-                }
-                var category = _context.Categories!
-                    .Include(ct => ct.Foods)!.FirstOrDefault(ct => ct.Id == id);
-
-                if (category == null)
-                {
-                    return NotFound();
-                }
-
-                //Category Id'sini sıfırla
-                category.StateId = stateId;
-
-                //Bağlı foodların StateId'lerini sıfırla
-                foreach (var food in category.Foods!)
-                {
-                    food.StateId = stateId;
-                }
-                try
-                {
-                    _context.SaveChanges();
-                    return Ok();
-                }
-                catch
-                {
-                    return BadRequest();
-                }
-            }
-
-        
-
-            private bool CategoryExists(int id)
             {
-                return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
+                return BadRequest("Yanlış stateId girdiniz!");
             }
+            var category = _context.Categories!
+                .Include(ct => ct.Foods)!.FirstOrDefault(ct => ct.Id == id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            //Category Id'sini sıfırla
+            category.StateId = stateId;
+
+            //Bağlı foodların StateId'lerini sıfırla
+            foreach (var food in category.Foods!)
+            {
+                food.StateId = stateId;
+            }
+            try
+            {
+                _context.SaveChanges();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+
+
+        private bool CategoryExists(int id)
+        {
+            return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
     }
 }

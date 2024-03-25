@@ -31,7 +31,7 @@ namespace QrMenuApi.Controllers
             _userManager = userManager;
         }
 
-        [Authorize(Roles ="Administrator")]
+        [Authorize(Roles = "Administrator")]
         // GET: api/Companies
         [HttpGet]
         public ActionResult<List<Company>> GetCompanies()
@@ -39,14 +39,14 @@ namespace QrMenuApi.Controllers
             List<Company> company = _context.Companies!.ToList();
 
             if (company == null)
-              {
-                    return NotFound();
-              }
+            {
+                return NotFound();
+            }
 
             return company;
         }
 
-        [Authorize(Roles ="CompaynAdministrator, Administrator")]
+        [Authorize(Roles = "CompaynAdministrator,Administrator")]
         // GET: api/Companies/5
         [HttpGet("{id}")]
         public ActionResult<Company> GetCompany(int id)
@@ -64,9 +64,9 @@ namespace QrMenuApi.Controllers
                 {
                     return Unauthorized("Sadece kendi şirketiniz verilerini getirebilirsiniz!");
                 }
-               
+
             }
-                return company;
+            return company;
         }
 
         // PUT: api/Companies/5
@@ -78,7 +78,7 @@ namespace QrMenuApi.Controllers
             {
                 if (User.HasClaim("CompanyId", id.ToString()) == false)
                 {
-                   return Unauthorized();
+                    return Unauthorized();
                 }
             }
 
@@ -105,13 +105,13 @@ namespace QrMenuApi.Controllers
             {
                 return NoContent();
             }
-            
+
         }
 
         // POST: api/Companies
-        
+
         [HttpPost]
-        [Authorize(Roles ="Administrator")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<Company>> PostCompany([FromBody] CompanyUserDto companyUserDto)//, string password)
         {
             if (companyUserDto == null)
@@ -145,21 +145,26 @@ namespace QrMenuApi.Controllers
 
 
         // DELETE: api/Companies/5
-        [HttpPut("{id}")]
-        [Authorize(Roles ="Administrator")]
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult CompanyStateChange(int id, byte stateId)
         {
 
-           
-            if(stateId !=0 && stateId != 1 && stateId != 2)
+
+            if (stateId != 0 && stateId != 1 && stateId != 2)
             {
                 return BadRequest("Yanlış stateId girdiniz!");
             }
 
-
-            if(_context.Companies!.Any(c=> c.Id!=id || c.StateId==0||c.ParentCompanyId==null))
+            if(_context.Companies!.Where(c=> c.Id==id).Any()==false)
             {
-                return BadRequest("Daha önce silinen veya hiç var olmayan bir verinin ya da kendi şirketinizin durumunu değiştiremezsiniz.");
+                return NotFound("Var olmayan bir şirketi silemezsin");
+            }
+
+            var user = _context.Companies!.Where(c => c.Id == id).First();
+            if (user.StateId==0||user.ParentCompanyId==null)
+            {
+                return BadRequest("Daha önce silinen bir şirketin durumunu değiştiremezsiniz.");
             }
             var company = _context.Companies!
                 .Include(c => c.Restaurants)!
@@ -171,7 +176,7 @@ namespace QrMenuApi.Controllers
             {
                 return NotFound();
             }
-            
+
 
             // Şirketin StateId'sini değiştirme
             company.StateId = stateId;

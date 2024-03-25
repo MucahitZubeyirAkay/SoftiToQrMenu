@@ -18,7 +18,7 @@ namespace QrMenuApi.Controllers
     [ApiController]
     public class RestaurantsController : ControllerBase
     {
-        private readonly IMapper _mapper; 
+        private readonly IMapper _mapper;
         private readonly QrMenuApiContext _context;
 
         public RestaurantsController(IMapper mapper, QrMenuApiContext context)
@@ -33,7 +33,7 @@ namespace QrMenuApi.Controllers
         public ActionResult<List<Restaurant>> GetRestaurants()
         {
 
-            if(User.IsInRole("Administrator"))
+            if (User.IsInRole("Administrator"))
             {
                 List<Restaurant> allrestaurant = _context.Restaurants!.ToList();
 
@@ -47,7 +47,7 @@ namespace QrMenuApi.Controllers
 
             int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
-            List<Restaurant> restaurant = _context.Restaurants!.Where(r=> r.CompanyId==companyId).ToList();
+            List<Restaurant> restaurant = _context.Restaurants!.Where(r => r.CompanyId == companyId).ToList();
 
             if (restaurant == null)
             {
@@ -59,7 +59,7 @@ namespace QrMenuApi.Controllers
 
         // GET: api/Restaurants/5
         [HttpGet("{id}")]
-        [Authorize(Roles ="CompanyAdministrator, Administrator")]
+        [Authorize(Roles = "CompanyAdministrator,Administrator")]
         public ActionResult<Restaurant> GetRestaurant(int id)
         {
             Restaurant? restaurant = _context.Restaurants!.Find(id);
@@ -102,7 +102,7 @@ namespace QrMenuApi.Controllers
 
             var existingRestaurant = _context.Restaurants!.Find(id);
 
-            if (existingRestaurant==null)
+            if (existingRestaurant == null)
             {
                 return NotFound();
             }
@@ -131,13 +131,13 @@ namespace QrMenuApi.Controllers
         {
             if (User.HasClaim("CompanyId", restaurantDto.CompanyId.ToString()) == false)
             {
-               return Unauthorized();
+                return Unauthorized();
             }
 
 
             if (restaurantDto == null)
             {
-              return NotFound();
+                return NotFound();
             }
 
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
@@ -148,7 +148,7 @@ namespace QrMenuApi.Controllers
 
         // DELETE: api/Restaurants/5
         [HttpDelete("{id}")]
-        [Authorize(Roles ="CompanyAdministrator")]
+        [Authorize(Roles = "CompanyAdministrator")]
         public ActionResult RestaurantStateChange(int id, byte stateId)
         {
             if (stateId != 0 && stateId != 1 && stateId != 2)
@@ -169,7 +169,7 @@ namespace QrMenuApi.Controllers
                     .ThenInclude(r => r.Foods)!
                 .FirstOrDefault(c => c.Id == id);
 
-            if (restaurant == null || restaurant.StateId==0)
+            if (restaurant == null || restaurant.StateId == 0)
             {
                 return NotFound("Silmek istediğiniz restaurant bulunamadı veya daha önceden silinmiş.");
             }

@@ -21,18 +21,18 @@ namespace QrMenuApi.Controllers
             _roleManager = roleManager;
         }
 
-        
+
         [HttpGet]
-        [Authorize(Roles ="CompanyAdministrator,Administrator")]
+        [Authorize(Roles = "CompanyAdministrator,Administrator")]
         public ActionResult<List<ApplicationUser>> GetCompanyAllAplciationUsers()
         {
             int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
             if (User.IsInRole("Administrator"))
             {
-               // int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
+                // int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
-                return _signInManager.UserManager.Users.Where(u=>u.CompanyId==companyId).ToList();
+                return _signInManager.UserManager.Users.Where(u => u.CompanyId == companyId).ToList();
 
             }
 
@@ -42,9 +42,9 @@ namespace QrMenuApi.Controllers
                 return Unauthorized();
             }
 
-            var users =_signInManager.UserManager.Users.Where(u => u.CompanyId == companyId).ToList();
+            var users = _signInManager.UserManager.Users.Where(u => u.CompanyId == companyId).ToList();
 
-            if(users==null)
+            if (users == null)
             {
                 return NotFound();
             }
@@ -56,7 +56,7 @@ namespace QrMenuApi.Controllers
         [Authorize(Roles = "CompanyAdministrator")]
         public ActionResult<ApplicationUser> GetAplicationUser(string id)
         {
-            
+
             ApplicationUser applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
             if (applicationUser == null)
             {
@@ -71,11 +71,11 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles ="Administrator, CompanyAdministrator")]
-        
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
+
         public ActionResult<string> PostApplicationUser(ApplicationUser applicationUser, string passWord)
         {
-            
+
             if (User.IsInRole("CompanyAdministrator")) //SorKısayolunu
             {
                 if (User.HasClaim("CompanyId", applicationUser.CompanyId.ToString()) == false)
@@ -88,10 +88,10 @@ namespace QrMenuApi.Controllers
             if (result.Succeeded)
             {
                 Claim claim;
-                
+
                 claim = new Claim("CompanyId", applicationUser.CompanyId.ToString());
                 _signInManager.UserManager.AddClaimAsync(applicationUser, claim).Wait();
-                
+
                 return applicationUser.Id;
             }
             else
@@ -102,7 +102,7 @@ namespace QrMenuApi.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles ="CompanyAdministrator")]
+        [Authorize(Roles = "CompanyAdministrator")]
         public ActionResult PutApplicationUser(ApplicationUser applicationUser)
         {
             try
@@ -167,13 +167,13 @@ namespace QrMenuApi.Controllers
             Microsoft.AspNetCore.Identity.SignInResult signInResult;
             ApplicationUser applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
 
-            if (applicationUser == null && applicationUser!.StateId!=1)
+            if (applicationUser == null && applicationUser!.StateId != 1)
             {
                 return false;
             }
             signInResult = _signInManager.PasswordSignInAsync(applicationUser, passWord, false, false).Result;
 
-            
+
             return signInResult.Succeeded;
         }
 

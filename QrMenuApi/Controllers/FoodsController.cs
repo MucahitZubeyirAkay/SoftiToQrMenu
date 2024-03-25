@@ -14,7 +14,7 @@ using QrMenuApi.Data.Models;
 
 namespace QrMenuApi.Controllers
 {
-   
+
     [Route("api/[controller]")]
     [ApiController]
     public class FoodsController : ControllerBase
@@ -30,12 +30,12 @@ namespace QrMenuApi.Controllers
 
         // GET: api/Foods
         [HttpGet]
-        public ActionResult <List<Food>> GetFoods()
+        public ActionResult<List<Food>> GetFoods()
         {
-          if (_context.Foods == null)
-          {
-              return NotFound();
-          }
+            if (_context.Foods == null)
+            {
+                return NotFound();
+            }
             List<Food> food = _context.Foods!.ToList();
 
             return food;
@@ -45,10 +45,10 @@ namespace QrMenuApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<Food> GetFood(int id)
         {
-          if (_context.Foods == null)
-          {
-              return NotFound();
-          }
+            if (_context.Foods == null)
+            {
+                return NotFound();
+            }
             Food? food = _context.Foods.Find(id);
 
             if (food == null)
@@ -61,7 +61,7 @@ namespace QrMenuApi.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
-        [Authorize(Roles ="RestaurantAdministrator")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult PutFood(int id, FoodDto foodDto)
         {
             var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
@@ -98,7 +98,7 @@ namespace QrMenuApi.Controllers
 
         // POST: api/Foods
         [HttpPost]
-        [Authorize(Roles ="RestaurantAdministrator")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<Food> PostFood(FoodDto foodDto)
         {
             var restaurantId = User.Claims.FirstOrDefault(c => c.Type == "RestaurantId")?.Value;
@@ -129,9 +129,9 @@ namespace QrMenuApi.Controllers
             {
                 return BadRequest("Yanlış stateId girdiniz!");
             }
-            var food =  _context.Foods!.FirstOrDefault(f=> f.Id == id);
+            var food = _context.Foods!.FirstOrDefault(f => f.Id == id);
 
-            if (food == null || food.StateId==0)
+            if (food == null || food.StateId == 0)
             {
                 return NotFound("Silmek istediğiniz yiyecek bulunamadı. Ya daha önceden silinmiş yada hiç var olmamış.");
             }

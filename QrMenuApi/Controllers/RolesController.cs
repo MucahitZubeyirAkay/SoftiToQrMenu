@@ -12,9 +12,9 @@ using QrMenuApi.Data.Models;
 
 namespace QrMenuApi.Controllers
 {
-    [Authorize(Roles = "Adminstrator")]
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator")]
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -31,7 +31,7 @@ namespace QrMenuApi.Controllers
         // GET: api/Roles
         [HttpGet]
         public ActionResult GetRoles()
-        { 
+        {
             var roles = _roleManager.Roles.ToList();
 
             return Ok(roles);
@@ -45,10 +45,10 @@ namespace QrMenuApi.Controllers
 
             if (role == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
 
-            return Ok(role); 
+            return Ok(role);
         }
 
 
@@ -67,14 +67,14 @@ namespace QrMenuApi.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteRol(string id)
         {
-           
+
             var applicationRole = await _roleManager.FindByIdAsync(id);
             if (applicationRole == null)
             {
                 return NotFound("Rol bulunamadı.");
             }
 
-            if(applicationRole.Name=="Administrator")
+            if (applicationRole.Name == "Administrator")
             {
                 return BadRequest("Administrator rolü silinemez.");
             }

@@ -28,12 +28,12 @@ namespace QrMenuApi.Controllers
 
 
         [HttpGet("GetUsers/{id}")]
-        [Authorize(Roles ="CompanyAdministrator, Administrator")]
-        public ActionResult<List<string>> GetRestaurantUsers(int id) //?Patlýyormu kontol et.
+        [Authorize(Roles = "CompanyAdministrator, Administrator")]
+        public ActionResult<List<string>> GetRestaurantUsers(int restaurantid) //?Patlï¿½yormu kontol et.
         {
-            var restaurantUsers = _context.RestaurantUser!.Where(ru => ru.RestaurantId == id).Select(ru => ru.ApplicationUserId).ToList();
+            var restaurantUsers = _context.RestaurantUser!.Where(ru => ru.RestaurantId == restaurantid).Select(ru => ru.ApplicationUserId).ToList();
 
-            if(restaurantUsers==null)
+            if (restaurantUsers == null)
             {
                 return NotFound();
             }
@@ -44,34 +44,48 @@ namespace QrMenuApi.Controllers
 
                 var restaurantsOfCompany = _context.RestaurantUser!
                                     .Include(ru => ru.Restaurant) // RestaurantUser tablosundan Restaurant tablosunu dahil ediyoruz
-                                    .Any(ru => ru.Restaurant!.CompanyId == companyId); // CompanyId eþleþiyormu diye kontrol et.
-                if(!restaurantsOfCompany)
+                                    .Any(ru => ru.Restaurant!.CompanyId == companyId); // CompanyId eï¿½leï¿½iyormu diye kontrol et.
+                if (!restaurantsOfCompany)
                 {
                     return Unauthorized();
                 }
-                    
+
             }
 
 
-            if(restaurantUsers==null)
+            if (restaurantUsers == null)
             {
                 return NotFound();
             }
-            
+
             return restaurantUsers!;
-            
-                
+
+
         }
 
         [HttpGet("GetRestaurants/{id}")]
-        public ActionResult<List<int>> GetUserRestaurants(string id)
+        [Authorize(Roles = "CompanyAdministrator, Admnistrator")]
+        public ActionResult<List<int>> GetUserRestaurants(string userid)
         {
-            if (!_context.RestaurantUser!.Any(ru => ru.ApplicationUserId == id))
+            var userRestaurants = _context.RestaurantUser!.Where(ru => ru.ApplicationUserId == userid).Select(ru => ru.RestaurantId).ToList();
+
+            if (userRestaurants == null)
             {
                 return NotFound();
             }
 
-            var userRestaurants = _context.RestaurantUser!.Where(ru => ru.ApplicationUserId == id).Select(ru => ru.RestaurantId).ToList();
+            if (User.IsInRole("CompanyAdministrator"))
+            {
+                int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
+                var userOfCompany = _context.RestaurantUser!
+                                    .Include(ru => ru.ApplicationUser) // RestaurantUser tablosundan Restaurant tablosunu dahil ediyoruz
+                                    .Any(ru => ru.ApplicationUser!.CompanyId == companyId);
+
+                if (!userOfCompany)
+                {
+                    return Unauthorized();
+                }
+            }
 
 
             return userRestaurants;
@@ -79,9 +93,10 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult<RestaurantUser> PostRestaurantsUsers(RestaurantUserDto restaurantUserDto)
         {
-            if(restaurantUserDto== null)
+            if (restaurantUserDto == null)
             {
                 return NotFound();
             }
@@ -94,19 +109,20 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpDelete("DeleteRestaurantUser")]
+        [Authorize]
         public ActionResult DeleteRestaurantUser(int? restaurantId, string? userId)
         {
-            if(restaurantId==null && userId==null)
+            if (restaurantId == null && userId == null)
             {
                 return NotFound();
             }
 
             var restaurantUser = _context.RestaurantUser!.FirstOrDefault(ru => ru.RestaurantId == restaurantId && ru.ApplicationUserId == userId);
 
-                if (restaurantUser == null)
-                {
-                    return NotFound();
-                }
+            if (restaurantUser == null)
+            {
+                return NotFound();
+            }
 
             _context.RestaurantUser!.Remove(restaurantUser);
             _context.SaveChanges();
@@ -115,9 +131,10 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpDelete("DeleteRestaurantUsers")]
+        [Authorize]
         public ActionResult DeleteRestaurantUser(int restaurantId)
         {
-           
+
             var restaurantUsers = _context.RestaurantUser!.FirstOrDefault(ru => ru.RestaurantId == restaurantId);
 
             if (restaurantUsers == null)
@@ -132,6 +149,7 @@ namespace QrMenuApi.Controllers
         }
 
         [HttpDelete("DeleteUserRestaurants")]
+        [Authorize]
         public ActionResult DeleteUserResaurants(string userId)
         {
             if (userId == null)
