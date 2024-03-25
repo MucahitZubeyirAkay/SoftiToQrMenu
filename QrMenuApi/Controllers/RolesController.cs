@@ -79,10 +79,10 @@ namespace QrMenuApi.Controllers
                 return BadRequest("Administrator rolü silinemez.");
             }
 
-            if(User.IsInRole(applicationRole.Name))
-            {
-                return BadRequest("Kendi rolünü silemezseiniz");
-            }
+            //if(User.IsInRole(applicationRole.Name))
+            //{
+            //    return BadRequest("Kendi rolünü silemezseiniz");
+            //}
 
             var result = await _roleManager.DeleteAsync(applicationRole);
             if (result.Succeeded)

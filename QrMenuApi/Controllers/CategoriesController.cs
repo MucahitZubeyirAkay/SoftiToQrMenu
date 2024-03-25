@@ -87,7 +87,7 @@ namespace QrMenuApi.Controllers
 
             var existingCategory = _context.Categories!.Find(id);
 
-            if (existingCategory == null)
+            if (existingCategory == null || existingCategory.StateId == 0)
             {
                 return NotFound();
             }

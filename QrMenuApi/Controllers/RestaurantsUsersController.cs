@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,14 +28,30 @@ namespace QrMenuApi.Controllers
 
 
         [HttpGet("GetUsers/{id}")]
-        public ActionResult<List<string>> GetRestaurantUsers(int id)
+        [Authorize(Roles ="CompanyAdministrator, Administrator")]
+        public ActionResult<List<string>> GetRestaurantUsers(int id) //?Patlýyormu kontol et.
         {
-            if (_context.RestaurantUser!.Any(ru => ru.RestaurantId != id))
+            var restaurantUsers = _context.RestaurantUser!.Where(ru => ru.RestaurantId == id).Select(ru => ru.ApplicationUserId).ToList();
+
+            if(restaurantUsers==null)
             {
                 return NotFound();
             }
 
-            var restaurantUsers = _context.RestaurantUser!.Where(ru => ru.RestaurantId == id).Select(ru=> ru.ApplicationUserId).ToList();
+            if (User.IsInRole("CompanyAdministror"))
+            {
+                int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
+
+                var restaurantsOfCompany = _context.RestaurantUser!
+                                    .Include(ru => ru.Restaurant) // RestaurantUser tablosundan Restaurant tablosunu dahil ediyoruz
+                                    .Any(ru => ru.Restaurant!.CompanyId == companyId); // CompanyId eþleþiyormu diye kontrol et.
+                if(!restaurantsOfCompany)
+                {
+                    return Unauthorized();
+                }
+                    
+            }
+
 
             if(restaurantUsers==null)
             {

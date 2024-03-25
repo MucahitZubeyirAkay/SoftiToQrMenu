@@ -51,22 +51,22 @@ namespace QrMenuApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<Company> GetCompany(int id)
         {
+            Company? company = _context.Companies!.Find(id);
+
+            if (company == null)
+            {
+                return NotFound();
+            }
+
             if (User.IsInRole("CompanyAdministrator"))
             {
-                if (User.HasClaim("CompanyId", id.ToString()) == false)
+                if (User.HasClaim("CompanyId", company.Id.ToString()) == false)
                 {
                     return Unauthorized("Sadece kendi şirketiniz verilerini getirebilirsiniz!");
                 }
                
             }
-            
-            Company? company = _context.Companies!.Find(id);
-
-            if(company != null)
-            {
                 return company;
-            }
-                return NotFound();
         }
 
         // PUT: api/Companies/5

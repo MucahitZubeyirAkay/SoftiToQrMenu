@@ -23,13 +23,33 @@ namespace QrMenuApi.Controllers
 
         
         [HttpGet]
-        [Authorize(Roles ="CompanyAdministrator")]
+        [Authorize(Roles ="CompanyAdministrator,Administrator")]
         public ActionResult<List<ApplicationUser>> GetCompanyAllAplciationUsers()
         {
             int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
-            return _signInManager.UserManager.Users.Where(u=>u.CompanyId==companyId).ToList();
+            if (User.IsInRole("Administrator"))
+            {
+               // int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
+                return _signInManager.UserManager.Users.Where(u=>u.CompanyId==companyId).ToList();
+
+            }
+
+
+            if (User.HasClaim("CompanyId", companyId.ToString()) == false)
+            {
+                return Unauthorized();
+            }
+
+            var users =_signInManager.UserManager.Users.Where(u => u.CompanyId == companyId).ToList();
+
+            if(users==null)
+            {
+                return NotFound();
+            }
+
+            return users;
         }
 
         [HttpGet("{id}")]

@@ -131,9 +131,9 @@ namespace QrMenuApi.Controllers
             }
             var food =  _context.Foods!.FirstOrDefault(f=> f.Id == id);
 
-            if (food == null)
+            if (food == null || food.StateId==0)
             {
-                return NotFound();
+                return NotFound("Silmek istediğiniz yiyecek bulunamadı. Ya daha önceden silinmiş yada hiç var olmamış.");
             }
 
             //Food'un Id sini aldığımız parametreye göre değiştirme.

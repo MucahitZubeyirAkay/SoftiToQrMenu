@@ -29,33 +29,54 @@ namespace QrMenuApi.Controllers
 
         // GET: api/Restaurants
         [HttpGet]
+        [Authorize(Roles = "CompanyAdministrator,Administrator")]
         public ActionResult<List<Restaurant>> GetRestaurants()
         {
-            if (_context.Restaurants == null)
+
+            if(User.IsInRole("Administrator"))
             {
-                return NotFound();
+                List<Restaurant> allrestaurant = _context.Restaurants!.ToList();
+
+                if (allrestaurant == null)
+                {
+                    return NotFound();
+                }
+
+                return allrestaurant;
             }
 
-            List<Restaurant> restaurant = _context.Restaurants!.ToList();
+            int companyId = int.Parse(User.Claims.First(c => c.Type == "CompanyId").Value);
 
-            return restaurant;
-        }
-
-        // GET: api/Restaurants/5
-        [HttpGet("{id}")]
-        public ActionResult<Restaurant> GetRestaurant(int id)
-        {
-          if (_context.Restaurants == null)
-          {
-              return NotFound();
-          }
-            Restaurant? restaurant =  _context.Restaurants.Find(id);
+            List<Restaurant> restaurant = _context.Restaurants!.Where(r=> r.CompanyId==companyId).ToList();
 
             if (restaurant == null)
             {
                 return NotFound();
             }
 
+            return restaurant;
+        }
+
+        // GET: api/Restaurants/5
+        [HttpGet("{id}")]
+        [Authorize(Roles ="CompanyAdministrator, Administrator")]
+        public ActionResult<Restaurant> GetRestaurant(int id)
+        {
+            Restaurant? restaurant = _context.Restaurants!.Find(id);
+
+            if (restaurant == null)
+            {
+                return NotFound();
+            }
+
+            if (User.IsInRole("CompanyAdministrator"))
+            {
+                if (User.HasClaim("CompanyId", restaurant.CompanyId.ToString()) == false)
+                {
+                    return Unauthorized("Sadece kendi şirketinizin verilerini getirebilirsiniz!");
+                }
+
+            }
             return restaurant;
         }
 
@@ -70,7 +91,6 @@ namespace QrMenuApi.Controllers
                 {
                     return Unauthorized();
                 }
-
             }
             else
             {
@@ -131,6 +151,10 @@ namespace QrMenuApi.Controllers
         [Authorize(Roles ="CompanyAdministrator")]
         public ActionResult RestaurantStateChange(int id, byte stateId)
         {
+            if (stateId != 0 && stateId != 1 && stateId != 2)
+            {
+                return BadRequest("Yanlış stateId girdiniz!");
+            }
 
             var companyId = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
             var restaurantCompanyId = _context.Restaurants!.FirstOrDefault(r => r.Id == id)?.ToString();
@@ -140,19 +164,14 @@ namespace QrMenuApi.Controllers
                 return Unauthorized();
             }
 
-            if (stateId != 0 && stateId != 1 && stateId != 2)
-            {
-                return BadRequest("Yanlış stateId girdiniz!");
-            }
-
             var restaurant = _context.Restaurants!
                 .Include(c => c.Categories)!
                     .ThenInclude(r => r.Foods)!
                 .FirstOrDefault(c => c.Id == id);
 
-            if (restaurant == null)
+            if (restaurant == null || restaurant.StateId==0)
             {
-                return NotFound();
+                return NotFound("Silmek istediğiniz restaurant bulunamadı veya daha önceden silinmiş.");
             }
 
             // Şirketin StateId'sini sıfırla
